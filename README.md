@@ -1,3 +1,24 @@
+## Authentik LDAP Provider - Mod for Samba Fileserver
+
+Initial basic support for Samba Fileserver (ldapsam + nslcd).
+The idea is that the provider supports the minimum requirements for my fileserver as authentik as IdP.
+Everything is modded within the outpost, so I dont have to rebase authentik every major release...
+
+Critical fields for samba are meant to be attributes in authentik.
+They need to be calculated with policies because property mappings are only for importing stuff.
+So the only possible solution is set the following properties as attributes in Register / Login / PW Change Flow:
+
+* userPassword (SSHA)
+* sambaNTPassword (NT)
+
+This is a highly risky mod. Far from production. I do not plan to contribute these changes to authentik.
+I´m still learning golang and I wanne be able to freely experiment with code without being restricted from contributing guidelines.
+Further more this is more a learning thing than everything else. I learned so much abaut LDAP, smbd, pam, sssd, nslcd, ldif last weeks...
+
+Have a nice day :).
+
+---
+
 <p align="center">
     <img src="https://goauthentik.io/img/icon_top_brand_colour.svg" height="150" alt="authentik logo">
 </p>

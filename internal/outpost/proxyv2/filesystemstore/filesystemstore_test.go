@@ -5,9 +5,10 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"syscall"
 	"testing"
 	"time"
+
+	syscll "goauthentik.io/internal/common"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -106,7 +107,7 @@ func TestSessionCleanup_AlreadyRunning(t *testing.T) {
 	lockFile, err := os.OpenFile(lockPath, os.O_CREATE|os.O_RDWR, 0600)
 	require.NoError(t, err, "failed to create lock file")
 
-	err = syscall.Flock(int(lockFile.Fd()), syscall.LOCK_EX|syscall.LOCK_NB)
+	err = syscll.Flock(int(lockFile.Fd()), syscll.LOCK_EX|syscll.LOCK_NB)
 	require.NoError(t, err, "failed to acquire lock for test")
 
 	// Run SessionCleanup while lock is held
@@ -117,7 +118,7 @@ func TestSessionCleanup_AlreadyRunning(t *testing.T) {
 	assert.ErrorIs(t, err, ErrSessionCleanupAlreadyRunning)
 
 	// Unlock and clean up
-	_ = syscall.Flock(int(lockFile.Fd()), syscall.LOCK_UN)
+	_ = syscll.Flock(int(lockFile.Fd()), syscll.LOCK_UN)
 	_ = lockFile.Close()
 	_ = os.Remove(lockPath)
 }

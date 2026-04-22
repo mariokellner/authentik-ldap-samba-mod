@@ -12,6 +12,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	syscll "goauthentik.io/internal/common"
 
 	"goauthentik.io/internal/config"
 	"goauthentik.io/internal/utils"
@@ -41,14 +42,14 @@ func New(healthcheck func() bool) *GoUnicorn {
 	}
 	g.initCmd()
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGHUP, syscall.SIGUSR2)
+	signal.Notify(c, syscall.SIGHUP, syscll.SIGUSR2)
 	go func() {
 		for sig := range c {
 			switch sig {
 			case syscall.SIGHUP:
 				g.log.Info("SIGHUP received, forwarding to gunicorn")
 				g.Reload()
-			case syscall.SIGUSR2:
+			case syscll.SIGUSR2:
 				g.log.Info("SIGUSR2 received, restarting gunicorn")
 				g.Restart()
 			}
@@ -129,7 +130,7 @@ func (g *GoUnicorn) Restart() {
 		return
 	}
 
-	err := g.p.Process.Signal(syscall.SIGUSR2)
+	err := g.p.Process.Signal(syscll.SIGUSR2)
 	if err != nil {
 		g.log.WithError(err).Warning("failed to restart gunicorn")
 		return
@@ -190,7 +191,7 @@ func (g *GoUnicorn) Kill() {
 		err = g.p.Process.Kill()
 	} else {
 		g.log.WithField("method", "sigterm").Warning("stopping gunicorn")
-		err = syscall.Kill(g.p.Process.Pid, syscall.SIGTERM)
+		err = syscll.Kill(g.p.Process.Pid, syscall.SIGTERM)
 	}
 	if err != nil {
 		g.log.WithError(err).Warning("failed to stop gunicorn")

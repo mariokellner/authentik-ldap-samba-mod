@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/sessions"
 	log "github.com/sirupsen/logrus"
 
+	syscll "goauthentik.io/internal/common"
 	"goauthentik.io/internal/outpost/proxyv2/sessionstore"
 )
 
@@ -97,7 +98,7 @@ func (s *Store) SessionCleanup(ctx context.Context) error {
 		}
 	}()
 
-	err = syscall.Flock(int(lockFile.Fd()), syscall.LOCK_EX|syscall.LOCK_NB)
+	err = syscll.Flock(int(lockFile.Fd()), syscll.LOCK_EX|syscll.LOCK_NB)
 	if err != nil {
 		if errno, ok := err.(syscall.Errno); ok && errno == syscall.EWOULDBLOCK {
 			return ErrSessionCleanupAlreadyRunning
@@ -105,7 +106,7 @@ func (s *Store) SessionCleanup(ctx context.Context) error {
 		return err
 	}
 	defer func() {
-		if flockErr := syscall.Flock(int(lockFile.Fd()), syscall.LOCK_UN); flockErr != nil {
+		if flockErr := syscll.Flock(int(lockFile.Fd()), syscll.LOCK_UN); flockErr != nil {
 			s.log.WithError(flockErr).Warn("failed to unlock file")
 		}
 

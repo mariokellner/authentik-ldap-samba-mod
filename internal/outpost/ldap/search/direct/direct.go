@@ -190,9 +190,9 @@ func (ds *DirectSearcher) Search(req *search.Request) (ldap.ServerSearchResult, 
 		})
 	}
 
-	// mod by mario kellner easy af, but plan to contribute this
-	// samba file server compatibility
-	// Answer with custom objectclasses for domain objects
+	// MOD Mario Kellner:
+	// samba fileserver comp. Search KVStore for "custom" objectClasses.
+	// Answer with "custom" objectclasses for domain objects with registriered dn.
 	errs.Go(func() error {
 		parsedFilter, err := ldap.CompileFilter(req.Filter)
 		if err != nil {

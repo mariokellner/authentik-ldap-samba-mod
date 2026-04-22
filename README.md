@@ -11,9 +11,15 @@ So the only possible solution is set the following properties as attributes in R
 * userPassword (SSHA)
 * sambaNTPassword (NT)
 
+Further the build especially for the LDAP outpost is now working on windows!
+No need to switch oses every time you want to develop!
+
 This is a highly risky mod. Far from production. I do not plan to contribute these changes to authentik.
-I´m still learning golang and I wanne be able to freely experiment with code without being restricted from contributing guidelines.
+I´m still learning golang and I wanna be able to freely experiment with code without being restricted from contributing guidelines.
 Further more this is more a learning thing than everything else. I learned so much abaut LDAP, smbd, pam, sssd, nslcd, ldif last weeks...
+
+For docker images and stuff I use a private repo.
+You need to build it by yourself.
 
 Have a nice day :).
 

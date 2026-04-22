@@ -47,7 +47,8 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/cmd/ldap",
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "envFile": "${workspaceFolder}/cmd/ldap/.env"
         },
         {
             "name": "Debug: Start Proxy Outpost",

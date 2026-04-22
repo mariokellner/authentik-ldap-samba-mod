@@ -5,9 +5,11 @@ import (
 	"strings"
 
 	"beryju.io/ldap"
+	log "github.com/sirupsen/logrus"
 	"goauthentik.io/internal/constants"
 	ldapConstants "goauthentik.io/internal/outpost/ldap/constants"
 	"goauthentik.io/internal/outpost/ldap/search"
+	"goauthentik.io/internal/outpost/ldap/server"
 )
 
 func (ds *DirectSearcher) SearchBase(req *search.Request) (ldap.ServerSearchResult, error) {
@@ -85,4 +87,41 @@ func (ds *DirectSearcher) SearchBase(req *search.Request) (ldap.ServerSearchResu
 		},
 		Referrals: []string{}, Controls: []ldap.Control{}, ResultCode: ldap.LDAPResultSuccess,
 	}, nil
+}
+
+// MOD Mario Kellner:
+// samba fileserver comp. Search KVStore for "custom" objectClasses.
+// Answer with "custom" objectclasses for domain objects with registriered dn.
+func SearchInMemory(req *search.Request, si server.LDAPServerInstance, entries []*ldap.Entry) []*ldap.Entry {
+	kv := si.GetKVStore()
+
+	value := kv.Store[strings.ToLower(req.FilterObjectClass)] // Format: "objectClass,baseDN" -> map[string][]byte{attribute: value}
+
+	if value != nil {
+		log.Info("Found value for filter object class: ", req.FilterObjectClass)
+
+		for dn, ent := range value {
+			entry := &ldap.Entry{
+				DN: dn,
+				Attributes: []*ldap.EntryAttribute{
+					{Name: "objectClass", Values: []string{"top"}},
+				},
+			}
+
+			for attr, val := range ent {
+				attrVal := strings.Split(string(val), ",")
+
+				attritem := &ldap.EntryAttribute{
+					Name:   attr,
+					Values: attrVal,
+				}
+				entry.Attributes = append(entry.Attributes, attritem)
+			}
+
+			entries = append(entries, entry)
+			break // For now return after first find
+		}
+	}
+
+	return entries
 }

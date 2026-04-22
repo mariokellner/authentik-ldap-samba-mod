@@ -32,6 +32,20 @@ func (pi *ProviderInstance) UserEntry(u api.User) *ldap.Entry {
 	if u.Email == nil {
 		u.Email = new("")
 	}
+
+	if u.Attributes["sambaNTPassword"] != nil {
+		attrs = append(attrs, &ldap.EntryAttribute{
+			Name:   "sambaNTPassword",
+			Values: []string{u.Attributes["sambaNTPassword"].(string)},
+		})
+	}
+	if u.Attributes["userPassword"] != nil {
+		attrs = append(attrs, &ldap.EntryAttribute{
+			Name:   "userPassword",
+			Values: []string{u.Attributes["userPassword"].(string)},
+		})
+	}
+
 	attrs = utils.EnsureAttributes(attrs, map[string][]string{
 		"ak-active":      {strings.ToUpper(strconv.FormatBool(*u.IsActive))},
 		"ak-superuser":   {strings.ToUpper(strconv.FormatBool(u.IsSuperuser))},
@@ -63,8 +77,6 @@ func (pi *ProviderInstance) UserEntry(u api.User) *ldap.Entry {
 
 		// Mod Mario Kellner
 		"sambaSID":        {constants.SAMBA_SID_DOMAIN + "-" + pi.GetUserGidNumber(u)},
-		"userPassword":    {u.Attributes["userPassword"].(string)},
-		"sambaNTPassword": {u.Attributes["sambaNTPassword"].(string)},
 		"sambaPwdLastSet": {fmt.Sprintf("%d", time.Now().Unix())},
 		"sambaAcctFlags":  {"[U          ]"},
 	})

@@ -34,7 +34,7 @@ const (
 )
 
 // mod Mario Kellner
-const SAMBA_SID_DOMAIN = "S-1-5-21-0133773310-7331001337-11353l353l"
+const SAMBA_SID_DOMAIN = "S-1-5-21-133701337-733101337-353103531"
 
 const (
 	OCSambaDomain       = "sambaDomain"

@@ -190,48 +190,10 @@ func (ds *DirectSearcher) Search(req *search.Request) (ldap.ServerSearchResult, 
 		})
 	}
 
-	// MOD Mario Kellner:
-	// samba fileserver comp. Search KVStore for "custom" objectClasses.
-	// Answer with "custom" objectclasses for domain objects with registriered dn.
-	errs.Go(func() error {
-		parsedFilter, err := ldap.CompileFilter(req.Filter)
-		if err != nil {
-			return nil
-		}
-		log.Info(strings.ToLower(req.FilterObjectClass)+" ", req.FilterObjectClass+" ", req.Filter+" ", parsedFilter)
-		kv := ds.si.GetKVStore()
-
-		value := kv.Store[strings.ToLower(req.FilterObjectClass)] // Format: "objectClass,baseDN" -> map[string][]byte{attribute: value}
-
-		if value != nil {
-			log.Info("Found value for filter object class: ", req.FilterObjectClass)
-
-			for dn, ent := range value {
-				entry := &ldap.Entry{
-					DN: dn,
-					Attributes: []*ldap.EntryAttribute{
-						{Name: "objectClass", Values: []string{"top"}},
-					},
-				}
-
-				for attr, val := range ent {
-					attrVal := strings.Split(string(val), ",")
-
-					attritem := &ldap.EntryAttribute{
-						Name:   attr,
-						Values: attrVal,
-					}
-					entry.Attributes = append(entry.Attributes, attritem)
-				}
-
-				entries = append(entries, entry)
-				break // For now return after first find
-			}
-
-		}
-
-		return nil
-	})
+	// MOD Mario Kellner: call Searchfunction for KVStore!
+	if !needGroups || !needUsers {
+		entries = SearchInMemory(req, ds.si, entries)
+	}
 
 	err = errs.Wait()
 	if err != nil {

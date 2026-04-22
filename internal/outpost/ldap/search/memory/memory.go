@@ -178,6 +178,11 @@ func (ms *MemorySearcher) Search(req *search.Request) (ldap.ServerSearchResult, 
 		}
 	}
 
+	// MOD Mario Kellner: call Searchfunction for KVStore!
+	if !needGroups || !needUsers {
+		entries = direct.SearchInMemory(req, ms.si, entries)
+	}
+
 	if err != nil {
 		return ldap.ServerSearchResult{ResultCode: ldap.LDAPResultOperationsError}, err
 	}

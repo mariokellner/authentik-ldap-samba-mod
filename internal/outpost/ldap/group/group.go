@@ -35,6 +35,8 @@ func (lg *LDAPGroup) Entry() *ldap.Entry {
 		objectClass = append(objectClass, constants.OCAKVirtualGroup)
 	}
 
+	objectClass = append(objectClass, constants.OCSambaGroupMapping)
+
 	attrs = utils.EnsureAttributes(attrs, map[string][]string{
 		"ak-superuser":   {strconv.FormatBool(lg.IsSuperuser)},
 		"objectClass":    objectClass,
@@ -44,6 +46,11 @@ func (lg *LDAPGroup) Entry() *ldap.Entry {
 		"uid":            {lg.Uid},
 		"sAMAccountName": {lg.CN},
 		"gidNumber":      {lg.GidNumber},
+
+		// MOD: Mario Kellner
+		"sambaSID":       {constants.SAMBA_SID_DOMAIN + "-" + lg.GidNumber},
+		"sambaGroupType": {"2"},
+		"displayName":    {"Domain User"},
 	})
 	return &ldap.Entry{DN: lg.DN, Attributes: attrs}
 }

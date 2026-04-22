@@ -54,6 +54,12 @@ func NewServer(ac *ak.APIController) ak.Outpost {
 	s.BindFunc("", ls)
 	s.UnbindFunc("", ls)
 	s.SearchFunc("", ls)
+
+	// mod Mario Kellner
+	s.AddFunc("", ls)
+	s.ModifyFunc("", ls)
+	s.DeleteFunc("", ls)
+
 	s.CloseFunc("", ls)
 	return ls
 }

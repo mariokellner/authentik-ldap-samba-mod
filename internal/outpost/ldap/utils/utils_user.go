@@ -43,6 +43,8 @@ func parseFilterForUserSingle(req api.ApiCoreUsersListRequest, f *ber.Packet) (a
 		return req, false
 	}
 	switch k {
+	case "uid": // MOD: Mario Kellner
+		return req.Username(*val), false
 	case "cn":
 		return req.Username(*val), false
 	case "name":

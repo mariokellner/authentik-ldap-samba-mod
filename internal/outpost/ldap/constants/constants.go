@@ -33,6 +33,15 @@ const (
 	OCPosixAccount  = "posixAccount"
 )
 
+// mod Mario Kellner
+const SAMBA_SID_DOMAIN = "S-1-5-21-0133773310-7331001337-11353l353l"
+
+const (
+	OCSambaDomain       = "sambaDomain"
+	OCSambaGroupMapping = "sambaGroupMapping"
+	OCSambaSamAccount   = "sambaSamAccount"
+)
+
 const (
 	OUUsers         = "users"
 	OUGroups        = "groups"
@@ -55,13 +64,14 @@ func GetContainerOCs() map[string]bool {
 
 func GetUserOCs() map[string]bool {
 	return map[string]bool{
-		OCTop:           true,
-		OCPerson:        true,
-		OCUser:          true,
-		OCOrgPerson:     true,
-		OCInetOrgPerson: true,
-		OCAKUser:        true,
-		OCPosixAccount:  true,
+		OCTop:             true,
+		OCPerson:          true,
+		OCUser:            true,
+		OCOrgPerson:       true,
+		OCInetOrgPerson:   true,
+		OCAKUser:          true,
+		OCPosixAccount:    true,
+		OCSambaSamAccount: true,
 	}
 }
 
@@ -72,6 +82,7 @@ func GetGroupOCs() map[string]bool {
 		OCGroupOfNames:       true,
 		OCAKGroup:            true,
 		OCPosixGroup:         true,
+		OCSambaGroupMapping:  true,
 	}
 }
 
@@ -81,5 +92,12 @@ func GetVirtualGroupOCs() map[string]bool {
 		OCGroupOfUniqueNames: true,
 		OCGroupOfNames:       true,
 		OCAKVirtualGroup:     true,
+	}
+}
+
+// mod Mario Kellner
+func GetSambaOCs() map[string]bool {
+	return map[string]bool{
+		OCSambaDomain: true,
 	}
 }

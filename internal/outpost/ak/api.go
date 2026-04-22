@@ -11,7 +11,6 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
-	"syscall"
 	"time"
 
 	"github.com/avast/retry-go/v4"
@@ -22,6 +21,9 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"goauthentik.io/internal/constants"
+
+	syscall_ "goauthentik.io/internal/common"
+
 	cryptobackend "goauthentik.io/internal/crypto/backend"
 	"goauthentik.io/internal/utils/web"
 	api "goauthentik.io/packages/client-go"
@@ -199,8 +201,10 @@ func (a *APIController) configureRefreshSignal() {
 			}
 		}
 	}()
-	signal.Notify(s, syscall.SIGUSR1)
+
+	signal.Notify(s, syscall_.SIGUSR1)
 	a.logger.Debug("Enabled USR1 hook to reload")
+
 }
 
 func (a *APIController) AddRefreshHandler(handler func()) {

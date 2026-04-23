@@ -69,6 +69,19 @@ func FromAPIGroup(g api.Group, si server.LDAPServerInstance) *LDAPGroup {
 	}
 }
 
+func VirtualSambaGroup(u api.User, si server.LDAPServerInstance) *LDAPGroup {
+	return &LDAPGroup{
+		DN:             si.GetGroupDN(u.Username),
+		CN:             u.Username,
+		Uid:            u.Uid,
+		GidNumber:      si.GetUserGidNumber(u),
+		Member:         []string{si.GetUserDN(u.Username)},
+		IsVirtualGroup: true,
+		IsSuperuser:    false,
+		Attributes:     nil,
+	}
+}
+
 func FromAPIUser(u api.User, si server.LDAPServerInstance) *LDAPGroup {
 	return &LDAPGroup{
 		DN:             si.GetVirtualGroupDN(u.Username),

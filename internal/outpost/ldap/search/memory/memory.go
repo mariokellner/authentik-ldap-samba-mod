@@ -114,6 +114,8 @@ func (ms *MemorySearcher) Search(req *search.Request) (ldap.ServerSearchResult, 
 	scope := req.Scope
 	needUsers, needGroups := ms.si.GetNeededObjects(scope, req.BaseDN, req.FilterObjectClass)
 
+	parsedFilter, _ := ldap.CompileFilter(req.Filter)
+
 	if scope >= 0 && strings.EqualFold(req.BaseDN, baseDN) {
 		if utils.IncludeObjectClass(req.FilterObjectClass, constants.GetDomainOCs()) {
 			rootEntries, _ := ms.SearchBase(req)
@@ -132,7 +134,8 @@ func (ms *MemorySearcher) Search(req *search.Request) (ldap.ServerSearchResult, 
 
 	if needUsers {
 		if flag.CanSearch {
-			users = &ms.users
+			cp, _ := utils.FilterMSSearchUser(ms.users, parsedFilter, false, ms.si)
+			users = &cp
 		} else {
 			u := make([]api.User, 1)
 			if flag.UserInfo == nil {
@@ -155,8 +158,8 @@ func (ms *MemorySearcher) Search(req *search.Request) (ldap.ServerSearchResult, 
 
 	if needGroups {
 		groups = make([]*group.LDAPGroup, 0)
-
-		for _, g := range ms.groups {
+		cp, _ := utils.FilterMSSearchGroup(ms.groups, parsedFilter, false, ms.si)
+		for _, g := range cp {
 			if flag.CanSearch {
 				groups = append(groups, group.FromAPIGroup(g, ms.si))
 			} else {
@@ -240,6 +243,9 @@ func (ms *MemorySearcher) Search(req *search.Request) (ldap.ServerSearchResult, 
 				if strings.EqualFold(req.BaseDN, entry.DN) || !singlevg {
 					entries = append(entries, entry)
 				}
+
+				// Add Samba virtual group
+				entries = append(entries, group.VirtualSambaGroup(u, ms.si).Entry())
 			}
 		}
 	}

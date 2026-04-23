@@ -57,6 +57,9 @@ func (pi *ProviderInstance) GetUserUidNumber(user api.User) string {
 
 	return strconv.FormatInt(int64(pi.uidStartNumber+user.Pk), 10)
 }
+func (pi *ProviderInstance) GetUserUidNumberFromPk(pk int32) string {
+	return strconv.FormatInt(int64(pi.uidStartNumber+pk), 10)
+}
 
 func (pi *ProviderInstance) GetUserGidNumber(user api.User) string {
 	gidNumber, ok := user.GetAttributes()["gidNumber"].(string)

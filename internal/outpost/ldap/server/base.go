@@ -62,6 +62,7 @@ type LDAPServerInstance interface {
 	GetVirtualGroupDN(string) string
 
 	GetUserUidNumber(api.User) string
+	GetUserUidNumberFromPk(int32) string
 	GetUserGidNumber(api.User) string
 	GetGroupGidNumber(api.Group) string
 

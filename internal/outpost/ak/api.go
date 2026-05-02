@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/avast/retry-go/v4"
@@ -47,6 +48,7 @@ type APIController struct {
 	reloadOffset time.Duration
 
 	eventConn        *websocket.Conn
+	eventConnMu      sync.Mutex
 	lastWsReconnect  time.Time
 	wsIsReconnecting bool
 	eventHandlers    []EventHandler

@@ -18,7 +18,6 @@ import (
 	"goauthentik.io/internal/outpost/ldap/search"
 	directsearch "goauthentik.io/internal/outpost/ldap/search/direct"
 	memorysearch "goauthentik.io/internal/outpost/ldap/search/memory"
-	"goauthentik.io/internal/outpost/ldap/server"
 	api "goauthentik.io/packages/client-go"
 )
 
@@ -60,12 +59,6 @@ func (ls *LDAPServer) Refresh() error {
 		}
 
 		providers[idx] = &ProviderInstance{
-
-			KV: server.KVStore{
-				Store:    map[string]map[string]map[string][]byte{},
-				DNLookup: map[string]string{},
-			},
-
 			BaseDN:                 provider.GetBaseDn(),
 			VirtualGroupDN:         virtualGroupDN,
 			GroupDN:                groupDN,
@@ -84,7 +77,6 @@ func (ls *LDAPServer) Refresh() error {
 			outpostName:            ls.ac.Outpost.Name,
 			providerPk:             provider.Pk,
 		}
-		server.AddDomainInfo(&providers[idx].KV, provider.GetBaseDn())
 
 		if kp := provider.Certificate.Get(); kp != nil {
 			err := ls.cs.AddKeypair(*kp)

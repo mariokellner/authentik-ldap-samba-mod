@@ -181,9 +181,10 @@ func (ms *MemorySearcher) Search(req *search.Request) (ldap.ServerSearchResult, 
 		}
 	}
 
-	// MOD Mario Kellner: call Searchfunction for KVStore!
+	// MOD Mario Kellner
+	// No Groups no users? maybe sambadomaininfo?
 	if !needGroups || !needUsers {
-		entries = direct.SearchInMemory(req, ms.si, entries)
+		entries = direct.SambaFakeAnswer(req, ms.si, entries)
 	}
 
 	if err != nil {

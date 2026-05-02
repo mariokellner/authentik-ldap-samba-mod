@@ -190,9 +190,10 @@ func (ds *DirectSearcher) Search(req *search.Request) (ldap.ServerSearchResult, 
 		})
 	}
 
-	// MOD Mario Kellner: call Searchfunction for KVStore!
+	// MOD Mario Kellner
+	// No Groups no users? maybe sambadomaininfo?
 	if !needGroups || !needUsers {
-		entries = SearchInMemory(req, ds.si, entries)
+		entries = SambaFakeAnswer(req, ds.si, entries)
 	}
 
 	err = errs.Wait()

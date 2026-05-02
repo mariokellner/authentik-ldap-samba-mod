@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"beryju.io/ldap"
-	log "github.com/sirupsen/logrus"
 	"goauthentik.io/internal/constants"
 	ldapConstants "goauthentik.io/internal/outpost/ldap/constants"
 	"goauthentik.io/internal/outpost/ldap/search"
@@ -89,39 +88,41 @@ func (ds *DirectSearcher) SearchBase(req *search.Request) (ldap.ServerSearchResu
 	}, nil
 }
 
-// MOD Mario Kellner:
-// samba fileserver comp. Search KVStore for "custom" objectClasses.
-// Answer with "custom" objectclasses for domain objects with registriered dn.
-func SearchInMemory(req *search.Request, si server.LDAPServerInstance, entries []*ldap.Entry) []*ldap.Entry {
-	kv := si.GetKVStore()
+// Instead of adding the new object with unsafe to a local store
+// Ill could instead fake the answer, so no object store is needed.
+// the SID remains static but since the goal is that we only provide login via
+// authentik, it should be okay at least for my usecases
+// For now the sid remains static but i dont think that it really bothers fileserver in the network
+func SambaFakeAnswer(req *search.Request, si server.LDAPServerInstance, entries []*ldap.Entry) []*ldap.Entry {
+	val := server.GetFakeDomainEntry()
+	filter, _ := ldap.CompileFilter(req.Filter)
 
-	value := kv.Store[strings.ToLower(req.FilterObjectClass)] // Format: "objectClass,baseDN" -> map[string][]byte{attribute: value}
-
-	if value != nil {
-		log.Info("Found value for filter object class: ", req.FilterObjectClass)
-
-		for dn, ent := range value {
-			entry := &ldap.Entry{
-				DN: dn,
-				Attributes: []*ldap.EntryAttribute{
-					{Name: "objectClass", Values: []string{"top"}},
-				},
-			}
-
-			for attr, val := range ent {
-				attrVal := strings.Split(string(val), ",")
-
-				attritem := &ldap.EntryAttribute{
-					Name:   attr,
-					Values: attrVal,
-				}
-				entry.Attributes = append(entry.Attributes, attritem)
-			}
-
-			entries = append(entries, entry)
-			break // For now return after first find
-		}
+	if filter.Children[1] == nil {
+		return entries
 	}
+
+	// quick and dirty: Samba Domain, as we only need that for that
+	cls := filter.Children[1].Children[0].Value
+	val1 := filter.Children[1].Children[1].Value
+
+	val[cls.(string)] = []byte(val1.(string))
+	entry := &ldap.Entry{
+		DN: cls.(string) + "=" + val1.(string) + "," + req.BaseDN,
+		Attributes: []*ldap.EntryAttribute{
+			{Name: "objectClass", Values: []string{"top"}},
+		},
+	}
+
+	for attr, val := range val {
+
+		attritem := &ldap.EntryAttribute{
+			Name:   attr,
+			Values: []string{string(val)},
+		}
+		entry.Attributes = append(entry.Attributes, attritem)
+	}
+
+	entries = append(entries, entry)
 
 	return entries
 }

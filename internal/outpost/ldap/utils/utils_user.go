@@ -72,6 +72,24 @@ func parseFilterForUserSingle(req api.ApiCoreUsersListRequest, f *ber.Packet) (a
 			}
 		}
 		return req.GroupsByName([]string{name}), false
+
+	// case "uidNumber":
+	// 	if string(si.GetUserUidNumber(usr)) == *val {
+	// 		newUser = append(newUser, usr)
+	// 	}
+	// case "sambasSidlist":
+	// 	fallthrough
+	// case "sambaSid":
+
+	// 	if *val == si.GetUserUidNumber(usr) {
+	// 		newUser = append(newUser, usr)
+	// 		break
+	// 	}
+
+	case "objectClass":
+
+	default:
+		logrus.Info("Not supported key ", k, " => ", *val)
 	}
 	return req, false
 }
@@ -180,10 +198,8 @@ func FilterMSSearchSubUser(user []api.User, f *ber.Packet, si server.LDAPServerI
 		case "sambasidlist":
 			fallthrough
 		case "sambasid":
-
 			if *val == constants.SAMBA_SID_DOMAIN+"-"+si.GetUserUidNumber(usr) {
 				newUser = append(newUser, usr)
-				break
 			}
 
 		case "objectclass":

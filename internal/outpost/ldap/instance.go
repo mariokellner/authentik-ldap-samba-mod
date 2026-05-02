@@ -11,7 +11,6 @@ import (
 	ldapConstants "goauthentik.io/internal/outpost/ldap/constants"
 	"goauthentik.io/internal/outpost/ldap/flags"
 	"goauthentik.io/internal/outpost/ldap/search"
-	"goauthentik.io/internal/outpost/ldap/server"
 	"goauthentik.io/internal/outpost/ldap/utils"
 	api "goauthentik.io/packages/client-go"
 )
@@ -42,12 +41,6 @@ type ProviderInstance struct {
 	uidStartNumber int32
 	gidStartNumber int32
 	mfaSupport     bool
-
-	KV server.KVStore // hacky inmemory store because i dont bother to implement new tables into authentik just for this
-}
-
-func (pi *ProviderInstance) GetKVStore() *server.KVStore {
-	return &pi.KV
 }
 
 func (pi *ProviderInstance) GetAPIClient() *api.APIClient {

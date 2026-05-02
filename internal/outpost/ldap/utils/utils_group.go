@@ -170,12 +170,10 @@ func FilterMSSearchSubGroup(groups []api.Group, f *ber.Packet, si server.LDAPSer
 		case "sambasidlist":
 			fallthrough
 		case "sambasid":
-
 			if *val == constants.SAMBA_SID_DOMAIN+"-"+si.GetGroupGidNumber(grp) {
 				newGroups = append(newGroups, grp)
-				break
-			}
 
+			}
 		case "objectclass":
 			newGroups = append(newGroups, grp)
 		default:

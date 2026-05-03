@@ -77,7 +77,6 @@ func (ls *LDAPServer) Refresh() error {
 			outpostName:            ls.ac.Outpost.Name,
 			providerPk:             provider.Pk,
 		}
-
 		if kp := provider.Certificate.Get(); kp != nil {
 			err := ls.cs.AddKeypair(*kp)
 			if err != nil {

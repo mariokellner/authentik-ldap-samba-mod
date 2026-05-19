@@ -73,6 +73,10 @@ export class UserListPage extends WithLicenseSummary(
                 max-width: var(--pf-c-avatar--Width);
                 vertical-align: middle;
             }
+            .pf-c-card.tree .pf-c-card__body {
+                padding-left: 0;
+                padding-right: 0;
+            }
         `,
     ];
 
@@ -87,15 +91,15 @@ export class UserListPage extends WithLicenseSummary(
     public override searchPlaceholder = msg("Search by username, email, etc...");
     public override searchLabel = msg("User Search");
 
-    public pageTitle = msg("Users");
-    public pageDescription = "";
-    public pageIcon = "pf-icon pf-icon-user";
+    public override pageTitle = msg("Users");
+    public override pageDescription = "";
+    public override pageIcon = "pf-icon pf-icon-user";
 
     @property({ type: String })
-    public order = "last_login";
+    public order = "-last_login";
 
-    @property({ type: String })
-    public activePath: string;
+    @property({ type: String, useDefault: true })
+    public activePath: string = DefaultUIConfig.defaults.userPath;
 
     @state()
     protected hideDeactivated = getURLParam<boolean>("hideDeactivated", false);
@@ -103,27 +107,23 @@ export class UserListPage extends WithLicenseSummary(
     @state()
     protected userPaths: UserPath | null = null;
 
-    constructor() {
-        super();
-
-        const defaultPath = DefaultUIConfig.defaults.userPath;
-
-        this.activePath = getURLParam<string>("path", defaultPath);
-
-        if (this.uiConfig.defaults.userPath !== defaultPath) {
-            this.activePath = this.uiConfig.defaults.userPath;
-        }
-    }
-
     protected canImpersonate = false;
 
     public override connectedCallback(): void {
         super.connectedCallback();
 
         this.canImpersonate = this.can(CapabilitiesEnum.CanImpersonate);
+
+        const initialDefaultUserPath = DefaultUIConfig.defaults.userPath;
+        const brandDefaultUserPath = this.uiConfig.defaults.userPath;
+
+        this.activePath = getURLParam<string>(
+            "path",
+            brandDefaultUserPath || initialDefaultUserPath,
+        );
     }
 
-    async apiEndpoint(): Promise<PaginatedResponse<User>> {
+    protected override async apiEndpoint(): Promise<PaginatedResponse<User>> {
         const users = await this.#api.coreUsersList({
             ...(await this.defaultEndpointConfig()),
             pathStartswith: this.activePath,
@@ -137,6 +137,18 @@ export class UserListPage extends WithLicenseSummary(
 
         return users;
     }
+
+    protected buildExportParams = async (): Promise<CoreUsersExportCreateRequest> => {
+        return {
+            ...(await this.defaultEndpointConfig()),
+            pathStartswith: this.activePath,
+            isActive: this.hideDeactivated ? true : undefined,
+        };
+    };
+
+    protected createExport = (params: CoreUsersExportCreateRequest) => {
+        return this.#api.coreUsersExportCreate(params);
+    };
 
     protected override rowLabel(item: User): string {
         if (item.name) {
@@ -154,6 +166,8 @@ export class UserListPage extends WithLicenseSummary(
         [msg("Type"), "type"],
         [msg("Actions"), null, msg("Row Actions")],
     ];
+
+    //#region Renderering
 
     protected override renderToolbarSelected(): TemplateResult {
         const disabled = this.selectedElements.length < 1;
@@ -245,7 +259,7 @@ export class UserListPage extends WithLicenseSummary(
         </div>`;
     }
 
-    protected row(item: User) {
+    protected override row(item: User): SlottedTemplateResult[] {
         const { currentUser } = this;
 
         const showImpersonation = this.canImpersonate && currentUser && item.pk !== currentUser.pk;
@@ -290,7 +304,7 @@ export class UserListPage extends WithLicenseSummary(
         ];
     }
 
-    renderExpanded(item: User): TemplateResult {
+    protected override renderExpanded(item: User): SlottedTemplateResult {
         return html`<dl class="pf-c-description-list pf-m-horizontal">
             <div class="pf-c-description-list__group">
                 <dt class="pf-c-description-list__term">
@@ -331,18 +345,6 @@ export class UserListPage extends WithLicenseSummary(
         </dl>`;
     }
 
-    protected buildExportParams = async () => {
-        return {
-            ...(await this.defaultEndpointConfig()),
-            pathStartswith: this.activePath,
-            isActive: this.hideDeactivated ? true : undefined,
-        };
-    };
-
-    protected createExport = (params: CoreUsersExportCreateRequest) => {
-        return this.#api.coreUsersExportCreate(params);
-    };
-
     protected renderObjectCreate(): SlottedTemplateResult {
         const { activePath } = this;
 
@@ -366,9 +368,9 @@ export class UserListPage extends WithLicenseSummary(
         });
     }
 
-    protected renderSidebarBefore(): TemplateResult {
+    protected renderSidebarBefore(): SlottedTemplateResult {
         return html`<aside aria-labelledby="sidebar-left-panel-header" class="pf-c-sidebar__panel">
-            <div class="pf-c-card">
+            <div class="pf-c-card tree">
                 <div
                     role="heading"
                     aria-level="2"
@@ -390,6 +392,8 @@ export class UserListPage extends WithLicenseSummary(
             </div>
         </aside>`;
     }
+
+    //#endregion
 }
 
 declare global {

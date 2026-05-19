@@ -192,8 +192,8 @@ func (ds *DirectSearcher) Search(req *search.Request) (ldap.ServerSearchResult, 
 
 	// MOD Mario Kellner
 	// No Groups no users? maybe sambadomaininfo?
-	if !needGroups || !needUsers {
-		entries = SambaFakeAnswer(req, ds.si, entries)
+	if !needGroups && !needUsers {
+		entries = SambaObjClassFilter(req, ds.si, entries)
 	}
 
 	err = errs.Wait()

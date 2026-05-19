@@ -48,7 +48,7 @@ type LDAPServerInstance interface {
 
 func GetFakeDomainEntry() map[string][]byte {
 	return map[string][]byte{
-		"objectclass":        []byte("sambaDomain"),
+		"objectClass":        []byte("sambaDomain"),
 		"sambaDomainName":    []byte(""),
 		"sambaSID":           []byte(constants.SAMBA_SID_DOMAIN),
 		"sambaPwdMustChange": []byte("0"),

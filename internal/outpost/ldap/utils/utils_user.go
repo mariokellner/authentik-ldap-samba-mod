@@ -116,7 +116,13 @@ func FilterMSSearchUser(user []api.User, f *ber.Packet, skip bool, si server.LDA
 		for _, child := range f.Children {
 			r, s := FilterMSSearchUser(user, child, skip, si)
 			for _, rs := range r {
+				for _, existing := range results {
+					if existing.Pk == rs.Pk {
+						goto next
+					}
+				}
 				results = append(results, rs)
+			next:
 			}
 
 			skip = skip || s
@@ -124,7 +130,7 @@ func FilterMSSearchUser(user []api.User, f *ber.Packet, skip bool, si server.LDA
 		user = results
 		return user, skip
 	default:
-		logrus.Info("Not supported Filtertype ", f.Tag)
+		logrus.Info("[UserSearch] Not supported Filtertype ", f.Tag)
 
 		return user, skip
 	}
@@ -160,7 +166,7 @@ func FilterMSSearchSubUser(user []api.User, f *ber.Packet, si server.LDAPServerI
 		case "uid": // MOD: Mario Kellner
 			fallthrough
 		case "cn":
-			if usr.Username == *val {
+			if strings.EqualFold(usr.Username, *val) {
 				newUser = append(newUser, usr)
 			}
 		case "displayname":
@@ -199,13 +205,15 @@ func FilterMSSearchSubUser(user []api.User, f *ber.Packet, si server.LDAPServerI
 			fallthrough
 		case "sambasid":
 			if *val == constants.SAMBA_SID_DOMAIN+"-"+si.GetUserUidNumber(usr) {
+				usr.Attributes[key.(string)] = val
+
 				newUser = append(newUser, usr)
 			}
 
 		case "objectclass":
 			newUser = append(newUser, usr)
 		default:
-			logrus.Info("Not supported key ", key, " => ", *val)
+			logrus.Info("[UserSearch] Not supported key ", key, " => ", *val)
 
 			newUser = append(newUser, usr)
 		}

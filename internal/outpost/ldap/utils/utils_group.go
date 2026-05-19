@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"strconv"
 	"strings"
 
 	"beryju.io/ldap"
@@ -74,15 +75,15 @@ func parseFilterForGroupSingle(req api.ApiCoreGroupsListRequest, f *ber.Packet) 
 // Implement Memory Search Filter
 // Before the MS Search returned all entries
 // Added some samba search props aswell
-func FilterMSSearchGroup(groups []api.Group, f *ber.Packet, skip bool, si server.LDAPServerInstance) ([]api.Group, bool) {
+func FilterMSSearchGroup(groups []api.Group, f *ber.Packet, skip bool, si server.LDAPServerInstance, user []api.User) ([]api.Group, bool) {
 
 	switch f.Tag {
 
 	case ldap.FilterEqualityMatch:
-		return FilterMSSearchSubGroup(groups, f, si)
+		return FilterMSSearchSubGroup(groups, user, f, si)
 	case ldap.FilterAnd:
 		for _, child := range f.Children {
-			r, s := FilterMSSearchGroup(groups, child, skip, si)
+			r, s := FilterMSSearchGroup(groups, child, skip, si, user)
 			skip = skip || s
 			groups = r
 		}
@@ -91,9 +92,15 @@ func FilterMSSearchGroup(groups []api.Group, f *ber.Packet, skip bool, si server
 		results := make([]api.Group, 0)
 
 		for _, child := range f.Children {
-			r, s := FilterMSSearchGroup(groups, child, skip, si)
+			r, s := FilterMSSearchGroup(groups, child, skip, si, user)
 			for _, rs := range r {
+				for _, existing := range results {
+					if existing.Pk == rs.Pk {
+						goto next
+					}
+				}
 				results = append(results, rs)
+			next:
 			}
 
 			skip = skip || s
@@ -101,13 +108,13 @@ func FilterMSSearchGroup(groups []api.Group, f *ber.Packet, skip bool, si server
 		groups = results
 		return groups, skip
 	default:
-		logrus.Info("Not supported Filtertype ", f.Tag)
+		logrus.Info("[GroupSearch] Not supported Filtertype ", f.Tag)
 
 		return groups, skip
 	}
 }
 
-func FilterMSSearchSubGroup(groups []api.Group, f *ber.Packet, si server.LDAPServerInstance) ([]api.Group, bool) {
+func FilterMSSearchSubGroup(groups []api.Group, user []api.User, f *ber.Packet, si server.LDAPServerInstance) ([]api.Group, bool) {
 
 	if len(f.Children) < 2 {
 		return groups, false
@@ -132,7 +139,12 @@ func FilterMSSearchSubGroup(groups []api.Group, f *ber.Packet, si server.LDAPSer
 	key = strings.ToLower(key.(string))
 
 	newGroups := make([]api.Group, 0)
+	privGroup := false
+	privGroup2 := false
 	for _, grp := range groups {
+		if privGroup || privGroup2 {
+			break
+		}
 		switch key {
 		case "displayname":
 			fallthrough
@@ -141,16 +153,32 @@ func FilterMSSearchSubGroup(groups []api.Group, f *ber.Packet, si server.LDAPSer
 				newGroups = append(newGroups, grp)
 			}
 		case "gidnumber":
-			if string(si.GetGroupGidNumber(grp)) == *val {
-				newGroups = append(newGroups, grp)
-			}
-		case "memberuid":
-			for _, mem := range grp.GetUsersObj() {
-				if mem.Username == *val {
-					newGroups = append(newGroups, grp)
+			// fake usergroup
+			for _, u := range user {
+				// If UidNummer matches the Gid of the primary group (user = group)
+				if si.GetUserUidNumber(u) == *val {
+					newGroups = append(newGroups, *VirtualSAMBAAPIGroupFromUser(u, si, map[string]any{key.(string): val}))
+					privGroup = true
 					break
 				}
 			}
+
+			if string(si.GetGroupGidNumber(grp)) == *val {
+				newGroups = append(newGroups, grp)
+			}
+
+		case "memberuid":
+			for _, mem := range grp.GetUsersObj() {
+				if mem.Username == *val {
+					grp.Attributes[key.(string)] = val
+					newGroups = append(newGroups, grp)
+
+					newGroups = append(newGroups, *VirtualSAMBAAPIGroupFromPartialUser(mem, si, map[string]any{key.(string): val}))
+					privGroup2 = true
+					break
+				}
+			}
+
 		case "member":
 			fallthrough
 		case "memberof":
@@ -170,17 +198,64 @@ func FilterMSSearchSubGroup(groups []api.Group, f *ber.Packet, si server.LDAPSer
 		case "sambasidlist":
 			fallthrough
 		case "sambasid":
-			if *val == constants.SAMBA_SID_DOMAIN+"-"+si.GetGroupGidNumber(grp) {
+			sidConst := constants.SAMBA_SID_GROUP_PREFIX + si.GetGroupGidNumber(grp)
+			//splitLast := strings.LastIndex(*val, "-")
+
+			for _, usr := range user {
+				usrVGID := constants.SAMBA_SID_GROUP_PREFIX + string(si.GetUserUidNumber(usr))
+
+				if *val == usrVGID {
+					// grp.Attributes[key.(string)] = val
+					newGroups = append(newGroups, *VirtualSAMBAAPIGroupFromUser(usr, si, map[string]any{key.(string): val}))
+
+					privGroup2 = true
+					break
+				}
+
+			}
+			if *val == sidConst {
 				newGroups = append(newGroups, grp)
 
 			}
 		case "objectclass":
 			newGroups = append(newGroups, grp)
 		default:
-			logrus.Info("Not supported key ", key, " => ", *val)
+			logrus.Info("[GroupSearch] Not supported key ", key, " => ", *val)
+			grp.Attributes[key.(string)] = val
 
 			newGroups = append(newGroups, grp)
 		}
 	}
 	return newGroups, false
+}
+
+func VirtualSAMBAAPIGroupFromUser(u api.User, si server.LDAPServerInstance, attributes map[string]any) *api.Group {
+
+	g := api.NewGroupWithDefaults()
+	g.SetName(u.Username)
+	g.SetPk(strconv.FormatInt(int64(u.Pk), 10))
+	g.SetNumPk(u.Pk)
+	g.SetIsSuperuser(false)
+	g.SetUsers([]int32{g.GetNumPk()})
+	g.Attributes = attributes
+	if g.Attributes == nil {
+		g.Attributes = make(map[string]any)
+	}
+	g.Attributes["sambaVGGroup"] = true
+	return g
+}
+
+func VirtualSAMBAAPIGroupFromPartialUser(u api.PartialUser, si server.LDAPServerInstance, attributes map[string]any) *api.Group {
+	g := api.NewGroupWithDefaults()
+	g.SetName(u.Username)
+	g.SetPk(strconv.FormatInt(int64(u.Pk), 10))
+	g.SetNumPk(u.Pk)
+	g.SetIsSuperuser(false)
+	g.SetUsers([]int32{g.GetNumPk()})
+	g.Attributes = attributes
+	if g.Attributes == nil {
+		g.Attributes = make(map[string]any)
+	}
+	g.Attributes["sambaVGGroup"] = true
+	return g
 }

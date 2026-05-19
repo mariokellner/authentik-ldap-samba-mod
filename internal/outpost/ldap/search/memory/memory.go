@@ -157,8 +157,9 @@ func (ms *MemorySearcher) Search(req *search.Request) (ldap.ServerSearchResult, 
 	}
 
 	if needGroups {
+		//users = nil
 		groups = make([]*group.LDAPGroup, 0)
-		cp, _ := utils.FilterMSSearchGroup(ms.groups, parsedFilter, false, ms.si)
+		cp, _ := utils.FilterMSSearchGroup(ms.groups, parsedFilter, false, ms.si, ms.users)
 		for _, g := range cp {
 			if flag.CanSearch {
 				groups = append(groups, group.FromAPIGroup(g, ms.si))
@@ -183,8 +184,8 @@ func (ms *MemorySearcher) Search(req *search.Request) (ldap.ServerSearchResult, 
 
 	// MOD Mario Kellner
 	// No Groups no users? maybe sambadomaininfo?
-	if !needGroups || !needUsers {
-		entries = direct.SambaFakeAnswer(req, ms.si, entries)
+	if !needGroups && !needUsers {
+		entries = direct.SambaObjClassFilter(req, ms.si, entries)
 	}
 
 	if err != nil {
@@ -244,9 +245,6 @@ func (ms *MemorySearcher) Search(req *search.Request) (ldap.ServerSearchResult, 
 				if strings.EqualFold(req.BaseDN, entry.DN) || !singlevg {
 					entries = append(entries, entry)
 				}
-
-				// Add Samba virtual group
-				entries = append(entries, group.VirtualSambaGroup(u, ms.si).Entry())
 			}
 		}
 	}

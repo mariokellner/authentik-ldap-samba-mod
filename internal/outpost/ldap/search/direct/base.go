@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"beryju.io/ldap"
+	"github.com/sirupsen/logrus"
 	"goauthentik.io/internal/constants"
 	ldapConstants "goauthentik.io/internal/outpost/ldap/constants"
 	"goauthentik.io/internal/outpost/ldap/search"
@@ -97,17 +98,44 @@ func SambaFakeAnswer(req *search.Request, si server.LDAPServerInstance, entries 
 	val := server.GetFakeDomainEntry()
 	filter, _ := ldap.CompileFilter(req.Filter)
 
-	if filter.Children[1] == nil {
+	if filter.Children[1] == nil || len(entries) > 0 {
+		return entries
+	}
+	cls := ""
+	val1 := ""
+
+	sdiDN := req.BaseDN
+	// support for deph = 2 filter, as samba domaininfo is only supported with that for now
+	if filter.Tag == ldap.FilterEqualityMatch && filter.Children[1].Value == "sambaDomain" {
+
+		cls = filter.Children[0].Value.(string)
+		val1 = filter.Children[1].Value.(string)
+
+		// Domain RN is passed as DN
+		listDN := strings.Split(req.BaseDN, ",")
+
+		if len(listDN) > 1 {
+			dmInfoRN := strings.Split(listDN[0], "=")
+			val[dmInfoRN[0]] = []byte(dmInfoRN[1])
+		} else {
+			return entries
+		}
+
+	} else if filter.Tag == ldap.FilterAnd && filter.Children[1].Tag == ldap.FilterEqualityMatch {
+		// In case we query a "sambaDomainInfo", fake the answer
+		// quick and dirty: Samba Domain, as we only need that for that
+		cls = filter.Children[1].Children[0].Value.(string)
+		val1 = filter.Children[1].Children[1].Value.(string)
+
+		sdiDN = cls + "=" + val1 + "," + sdiDN
+
+	} else {
 		return entries
 	}
 
-	// quick and dirty: Samba Domain, as we only need that for that
-	cls := filter.Children[1].Children[0].Value
-	val1 := filter.Children[1].Children[1].Value
-
-	val[cls.(string)] = []byte(val1.(string))
+	val[cls] = []byte(val1)
 	entry := &ldap.Entry{
-		DN: cls.(string) + "=" + val1.(string) + "," + req.BaseDN,
+		DN: sdiDN,
 		Attributes: []*ldap.EntryAttribute{
 			{Name: "objectClass", Values: []string{"top"}},
 		},
@@ -123,6 +151,16 @@ func SambaFakeAnswer(req *search.Request, si server.LDAPServerInstance, entries 
 	}
 
 	entries = append(entries, entry)
+
+	return entries
+}
+func SambaObjClassFilter(req *search.Request, si server.LDAPServerInstance, entries []*ldap.Entry) []*ldap.Entry {
+	switch req.FilterObjectClass {
+	case "sambadomain":
+		entries = SambaFakeAnswer(req, si, entries)
+	default:
+		logrus.Info("Not implemented ... ignoring! ", req.FilterObjectClass, req.Filter, strings.Join(req.SearchRequest.Attributes, ", "))
+	}
 
 	return entries
 }

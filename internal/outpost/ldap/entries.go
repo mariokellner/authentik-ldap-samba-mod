@@ -33,23 +33,27 @@ func (pi *ProviderInstance) UserEntry(u api.User) *ldap.Entry {
 		u.Email = new("")
 	}
 
-	if u.Attributes["sambaNTPassword"] != nil {
+	if u.Attributes["sambaNTPassword"] == nil {
 		attrs = append(attrs, &ldap.EntryAttribute{
 			Name:   "sambaNTPassword",
 			Values: []string{u.Attributes["sambaNTPassword"].(string)},
 		})
 	}
-	if u.Attributes["userPassword"] != nil {
+	if u.Attributes["userPassword"] == nil {
 		attrs = append(attrs, &ldap.EntryAttribute{
 			Name:   "userPassword",
 			Values: []string{u.Attributes["userPassword"].(string)},
 		})
 	}
 
+	mmbrOf := pi.GroupsForUser(u)
+	mmbrOf = append(mmbrOf, pi.GetGroupDN(u.Username))
+	mmbrOf = append(mmbrOf, pi.GetGroupDN("Domain Users"))
+
 	attrs = utils.EnsureAttributes(attrs, map[string][]string{
 		"ak-active":      {strings.ToUpper(strconv.FormatBool(*u.IsActive))},
 		"ak-superuser":   {strings.ToUpper(strconv.FormatBool(u.IsSuperuser))},
-		"memberOf":       pi.GroupsForUser(u),
+		"memberOf":       mmbrOf,
 		"cn":             {u.Username},
 		"sAMAccountName": {u.Username},
 		"uniqID":         {u.Uid}, // remark: uid is not the database uniq id in samba, so i modified it here
@@ -76,9 +80,14 @@ func (pi *ProviderInstance) UserEntry(u api.User) *ldap.Entry {
 		"modifyTimestamp": {u.LastUpdated.In(time.UTC).Format("20060102150405Z")},
 
 		// Mod Mario Kellner
-		"sambaSID":        {constants.SAMBA_SID_DOMAIN + "-" + pi.GetUserGidNumber(u)},
-		"sambaPwdLastSet": {fmt.Sprintf("%d", time.Now().Unix())},
-		"sambaAcctFlags":  {"[U          ]"},
+		"sambaSID":             {constants.SAMBA_SID_DOMAIN + "-" + pi.GetUserGidNumber(u)},
+		"sambaPwdLastSet":      {fmt.Sprintf("%d", time.Now().Unix())},
+		"sambaAcctFlags":       {"[U          ]"},
+		"sambaPrimaryGroupSID": {constants.SAMBA_SID_GROUP_PREFIX + pi.GetUserGidNumber(u)},
+
+		// Additional attributes from user.Attributes
+		"gecos":      {u.Name},
+		"loginShell": {"/bin/bash"},
 	})
 	return &ldap.Entry{DN: dn, Attributes: attrs}
 }

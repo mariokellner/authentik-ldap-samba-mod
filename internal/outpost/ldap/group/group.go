@@ -48,7 +48,7 @@ func (lg *LDAPGroup) Entry() *ldap.Entry {
 		"gidNumber":      {lg.GidNumber},
 
 		// MOD: Mario Kellner
-		"sambaSID":       {constants.SAMBA_SID_DOMAIN + "-" + lg.GidNumber},
+		"sambaSID":       {constants.SAMBA_SID_GROUP_PREFIX + lg.GidNumber},
 		"sambaGroupType": {"2"},
 		"displayName":    {"Domain User"},
 	})
@@ -56,11 +56,17 @@ func (lg *LDAPGroup) Entry() *ldap.Entry {
 }
 
 func FromAPIGroup(g api.Group, si server.LDAPServerInstance) *LDAPGroup {
+	Gid := si.GetGroupGidNumber(g)
+	if g.Attributes["sambaVGGroup"] != nil && g.Attributes["sambaVGGroup"].(bool) {
+		Gid = si.GetUserUidNumberFromPk(g.NumPk)
+		delete(g.Attributes, "sambaVGGroup")
+	}
+
 	return &LDAPGroup{
 		DN:             si.GetGroupDN(g.Name),
 		CN:             g.Name,
 		Uid:            string(g.Pk),
-		GidNumber:      si.GetGroupGidNumber(g),
+		GidNumber:      Gid,
 		Member:         si.MembersForGroup(g),
 		MemberOf:       si.MemberOfForGroup(g),
 		IsVirtualGroup: false,

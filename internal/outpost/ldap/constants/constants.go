@@ -35,6 +35,7 @@ const (
 
 // mod Mario Kellner
 const SAMBA_SID_DOMAIN = "S-1-5-21-133701337-733101337-353103531"
+const SAMBA_SID_GROUP_PREFIX = SAMBA_SID_DOMAIN + "-513"
 
 const (
 	OCSambaDomain       = "sambaDomain"

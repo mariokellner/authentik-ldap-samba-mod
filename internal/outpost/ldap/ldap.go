@@ -64,6 +64,7 @@ func (ls *LDAPServer) Type() string {
 }
 
 func (ls *LDAPServer) StartLDAPServer(listen string) error {
+	//listen = "0.0.0.0:3489"
 	ln, err := net.Listen("tcp", listen)
 	if err != nil {
 		ls.log.WithField("listen", listen).WithError(err).Warning("Failed to listen (SSL)")

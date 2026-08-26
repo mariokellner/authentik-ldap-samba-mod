@@ -34,16 +34,21 @@ func (pi *ProviderInstance) UserEntry(u api.User) *ldap.Entry {
 	}
 
 	if u.Attributes["sambaNTPassword"] == nil {
-		attrs = append(attrs, &ldap.EntryAttribute{
-			Name:   "sambaNTPassword",
-			Values: []string{u.Attributes["sambaNTPassword"].(string)},
-		})
+		if u.Attributes["sambaNTPassword"] != nil {
+			attrs = append(attrs, &ldap.EntryAttribute{
+				Name:   "sambaNTPassword",
+				Values: []string{u.Attributes["sambaNTPassword"].(string)},
+			})
+		}
 	}
 	if u.Attributes["userPassword"] == nil {
-		attrs = append(attrs, &ldap.EntryAttribute{
-			Name:   "userPassword",
-			Values: []string{u.Attributes["userPassword"].(string)},
-		})
+
+		if u.Attributes["userPassword"] != nil {
+			attrs = append(attrs, &ldap.EntryAttribute{
+				Name:   "userPassword",
+				Values: []string{u.Attributes["userPassword"].(string)},
+			})
+		}
 	}
 
 	mmbrOf := pi.GroupsForUser(u)

@@ -4,7 +4,7 @@ import "#elements/events/LogViewer";
 import "#elements/forms/HorizontalFormElement";
 import "#elements/forms/SearchSelect/index";
 
-import { DEFAULT_CONFIG } from "#common/api/config";
+import { aki } from "#common/api/client";
 import { PFSize } from "#common/enums";
 
 import { Form } from "#elements/forms/Form";
@@ -50,7 +50,7 @@ export class PolicyTestForm extends Form<PolicyTestRequest> {
         `,
     ];
 
-    #api = new PoliciesApi(DEFAULT_CONFIG);
+    #api = aki(PoliciesApi);
 
     protected override formatSubmitLabel(submitLabel?: string | null): string {
         return submitLabel || msg("Run Test");
@@ -123,13 +123,7 @@ export class PolicyTestForm extends Form<PolicyTestRequest> {
             </ak-form-element-horizontal>
 
             <ak-form-element-horizontal label=${msg("Log messages")}>
-                <div class="pf-c-form__group-label">
-                    <div class="pf-c-form__horizontal-group ak-policy-test-log-messages">
-                        <dl class="pf-c-description-list pf-m-horizontal">
-                            <ak-log-viewer .items=${this.result?.logMessages}></ak-log-viewer>
-                        </dl>
-                    </div>
-                </div>
+                <ak-log-viewer .items=${this.result?.logMessages}></ak-log-viewer>
             </ak-form-element-horizontal>`;
     }
 
@@ -144,7 +138,7 @@ export class PolicyTestForm extends Form<PolicyTestRequest> {
                         if (query !== undefined) {
                             args.search = query;
                         }
-                        const users = await new CoreApi(DEFAULT_CONFIG).coreUsersList(args);
+                        const users = await aki(CoreApi).coreUsersList(args);
                         return users.results;
                     }}
                     .renderElement=${(user: User): string => {

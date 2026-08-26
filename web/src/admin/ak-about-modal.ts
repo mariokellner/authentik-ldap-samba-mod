@@ -1,6 +1,6 @@
 import "#elements/ak-progress-bar";
 
-import { DEFAULT_CONFIG } from "#common/api/config";
+import { aki } from "#common/api/client";
 import { globalAK } from "#common/global";
 
 import { asInvoker } from "#elements/dialogs";
@@ -52,10 +52,6 @@ export class AboutModal extends WithLicenseSummary(WithBrandConfig(AKModal)) {
         ...AKModal.styles,
         PFAbout,
         css`
-            :host {
-                height: 100%;
-            }
-
             .pf-c-about-modal-box {
                 --pf-c-about-modal-box--BackgroundColor: var(--ak-c-dialog--BackgroundColor);
                 width: unset;
@@ -84,7 +80,7 @@ export class AboutModal extends WithLicenseSummary(WithBrandConfig(AKModal)) {
 
     public static open = asInvoker(AboutModal);
 
-    #api = new AdminApi(DEFAULT_CONFIG);
+    #api = aki(AdminApi);
 
     protected canDebug = globalAK().config.capabilities.includes(CapabilitiesEnum.CanDebug);
 

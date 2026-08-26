@@ -8,10 +8,11 @@ import "#elements/forms/Radio";
 import "#elements/forms/SearchSelect/index";
 import "#elements/utils/TimeDeltaHelp";
 import "./AdminSettingsFooterLinks.js";
+import "#elements/Alert";
 
 import { akFooterLinkInput, IFooterLinkInput } from "./AdminSettingsFooterLinks.js";
 
-import { DEFAULT_CONFIG } from "#common/api/config";
+import { aki } from "#common/api/client";
 
 import { Form } from "#elements/forms/Form";
 import { SlottedTemplateResult } from "#elements/types";
@@ -50,7 +51,7 @@ export class AdminSettingsForm extends Form<SettingsRequest> {
     }
 
     async send(settingsRequest: SettingsRequest): Promise<Settings> {
-        const result = await new AdminApi(DEFAULT_CONFIG).adminSettingsUpdate({
+        const result = await aki(AdminApi).adminSettingsUpdate({
             settingsRequest,
         });
 
@@ -276,7 +277,7 @@ export class AdminSettingsForm extends Form<SettingsRequest> {
             <ak-form-group
                 label=${msg("Flags")}
                 description=${msg(
-                    "Flags allow you to enable new functionality and behaviour in authentik early.",
+                    "Flags allow you to enable new functionality and behavior in authentik early.",
                 )}
             >
                 <div class="pf-c-form">
@@ -287,6 +288,9 @@ export class AdminSettingsForm extends Form<SettingsRequest> {
                         help=${msg(
                             "When enabled, other flow tabs in a session will refresh upon a successful authentication.",
                         )}
+                        .bighelp=${html`<ak-alert class="pf-c-radio__description" inline plain>
+                            ${msg("This flag is deprecated.")}
+                        </ak-alert>`}
                     >
                     </ak-switch-input>
                     <ak-switch-input

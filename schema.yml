@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: authentik
-  version: 2026.5.0-rc1
+  version: 2026.8.0-rc1
   description: Making authentication simple.
   contact:
     email: hello@goauthentik.io
@@ -5430,6 +5430,8 @@ paths:
         using this object
       tags:
       - endpoints
+      security:
+      - {}
       responses:
         '200':
           content:
@@ -9678,18 +9680,14 @@ paths:
       security:
       - authentik: []
       responses:
-        '204':
+        '200':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/BlueprintImportResult'
           description: ''
         '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BlueprintImportResult'
-          description: ''
+          $ref: '#/components/responses/ValidationErrorResponse'
         '403':
           $ref: '#/components/responses/GenericErrorResponse'
   /oauth2/access_tokens/:
@@ -34608,10 +34606,12 @@ components:
               properties:
                 brand:
                   type: string
+                  nullable: true
                 family:
                   type: string
                 model:
                   type: string
+                  nullable: true
               required:
               - brand
               - family
@@ -34624,12 +34624,16 @@ components:
                   type: string
                 major:
                   type: string
+                  nullable: true
                 minor:
                   type: string
+                  nullable: true
                 patch:
                   type: string
+                  nullable: true
                 patch_minor:
                   type: string
+                  nullable: true
               required:
               - family
               - major
@@ -35607,6 +35611,18 @@ components:
           items:
             $ref: '#/components/schemas/WebAuthnDeviceType'
           readOnly: true
+        email_otp_throttling_factor:
+          type: number
+          format: double
+        sms_otp_throttling_factor:
+          type: number
+          format: double
+        totp_otp_throttling_factor:
+          type: number
+          format: double
+        static_otp_throttling_factor:
+          type: number
+          format: double
       required:
       - component
       - flow_set
@@ -35656,6 +35672,18 @@ components:
           items:
             type: string
             format: uuid
+        email_otp_throttling_factor:
+          type: number
+          format: double
+        sms_otp_throttling_factor:
+          type: number
+          format: double
+        totp_otp_throttling_factor:
+          type: number
+          format: double
+        static_otp_throttling_factor:
+          type: number
+          format: double
       required:
       - name
     AuthenticatorValidationChallenge:
@@ -36044,6 +36072,8 @@ components:
         path:
           type: string
           minLength: 1
+        context:
+          type: string
     Brand:
       type: object
       description: Brand Serializer
@@ -36303,6 +36333,8 @@ components:
           type: string
         api_url:
           type: string
+        request_content_type:
+          $ref: '#/components/schemas/RequestContentTypeEnum'
         interactive:
           type: boolean
         score_min_threshold:
@@ -36348,6 +36380,8 @@ components:
         api_url:
           type: string
           minLength: 1
+        request_content_type:
+          $ref: '#/components/schemas/RequestContentTypeEnum'
         interactive:
           type: boolean
         score_min_threshold:
@@ -37183,6 +37217,7 @@ components:
             flows_refresh_others:
               type: boolean
               description: Refresh other tabs after successful authentication.
+              deprecated: true
           required:
           - core_default_app_access
           - enterprise_audit_include_expanded_diff
@@ -39031,7 +39066,13 @@ components:
     EventsRequestedEnum:
       enum:
       - https://schemas.openid.net/secevent/caep/event-type/session-revoked
+      - https://schemas.openid.net/secevent/caep/event-type/token-claims-change
       - https://schemas.openid.net/secevent/caep/event-type/credential-change
+      - https://schemas.openid.net/secevent/caep/event-type/assurance-level-change
+      - https://schemas.openid.net/secevent/caep/event-type/device-compliance-change
+      - https://schemas.openid.net/secevent/caep/event-type/session-established
+      - https://schemas.openid.net/secevent/caep/event-type/session-presented
+      - https://schemas.openid.net/secevent/caep/event-type/risk-level-change
       - https://schemas.openid.net/secevent/ssf/event-type/verification
       type: string
     ExpiringBaseGrantModel:
@@ -39043,7 +39084,7 @@ components:
           readOnly: true
           title: ID
         provider:
-          $ref: '#/components/schemas/OAuth2Provider'
+          $ref: '#/components/schemas/Provider'
         user:
           $ref: '#/components/schemas/User'
         is_expired:
@@ -40474,6 +40515,7 @@ components:
         group:
           type: string
           format: uuid
+          readOnly: true
         source:
           type: string
           format: uuid
@@ -40503,9 +40545,6 @@ components:
       type: object
       description: Group Source Connection
       properties:
-        group:
-          type: string
-          format: uuid
         source:
           type: string
           format: uuid
@@ -40513,7 +40552,6 @@ components:
           type: string
           minLength: 1
       required:
-      - group
       - identifier
       - source
     GroupLDAPSourceConnection:
@@ -40527,6 +40565,7 @@ components:
         group:
           type: string
           format: uuid
+          readOnly: true
         source:
           type: string
           format: uuid
@@ -40561,9 +40600,6 @@ components:
       type: object
       description: Group Source Connection
       properties:
-        group:
-          type: string
-          format: uuid
         source:
           type: string
           format: uuid
@@ -40571,7 +40607,6 @@ components:
           type: string
           minLength: 1
       required:
-      - group
       - identifier
       - source
     GroupMatchingModeEnum:
@@ -40591,6 +40626,7 @@ components:
         group:
           type: string
           format: uuid
+          readOnly: true
         source:
           type: string
           format: uuid
@@ -40620,9 +40656,6 @@ components:
       type: object
       description: Group Source Connection
       properties:
-        group:
-          type: string
-          format: uuid
         source:
           type: string
           format: uuid
@@ -40630,7 +40663,6 @@ components:
           type: string
           minLength: 1
       required:
-      - group
       - identifier
       - source
     GroupPlexSourceConnection:
@@ -40644,6 +40676,7 @@ components:
         group:
           type: string
           format: uuid
+          readOnly: true
         source:
           type: string
           format: uuid
@@ -40673,9 +40706,6 @@ components:
       type: object
       description: Group Source Connection
       properties:
-        group:
-          type: string
-          format: uuid
         source:
           type: string
           format: uuid
@@ -40683,7 +40713,6 @@ components:
           type: string
           minLength: 1
       required:
-      - group
       - identifier
       - source
     GroupRequest:
@@ -40726,6 +40755,7 @@ components:
         group:
           type: string
           format: uuid
+          readOnly: true
         source:
           type: string
           format: uuid
@@ -40755,9 +40785,6 @@ components:
       type: object
       description: Group Source Connection
       properties:
-        group:
-          type: string
-          format: uuid
         source:
           type: string
           format: uuid
@@ -40765,7 +40792,6 @@ components:
           type: string
           minLength: 1
       required:
-      - group
       - identifier
       - source
     GroupSourceConnection:
@@ -40779,6 +40805,7 @@ components:
         group:
           type: string
           format: uuid
+          readOnly: true
         source:
           type: string
           format: uuid
@@ -40808,9 +40835,6 @@ components:
       type: object
       description: Group Source Connection
       properties:
-        group:
-          type: string
-          format: uuid
         source:
           type: string
           format: uuid
@@ -40818,7 +40842,6 @@ components:
           type: string
           minLength: 1
       required:
-      - group
       - identifier
       - source
     GroupTelegramSourceConnection:
@@ -40832,6 +40855,7 @@ components:
         group:
           type: string
           format: uuid
+          readOnly: true
         source:
           type: string
           format: uuid
@@ -40861,9 +40885,6 @@ components:
       type: object
       description: Group Source Connection
       properties:
-        group:
-          type: string
-          format: uuid
         source:
           type: string
           format: uuid
@@ -40871,7 +40892,6 @@ components:
           type: string
           minLength: 1
       required:
-      - group
       - identifier
       - source
     Hardware:
@@ -41900,7 +41920,7 @@ components:
           readOnly: true
         application_slug:
           type: string
-          description: Prioritise backchannel slug over direct application slug
+          description: Prioritize backchannel slug over direct application slug
           readOnly: true
         certificate:
           type: string
@@ -43790,6 +43810,7 @@ components:
           allOf:
           - $ref: '#/components/schemas/Group'
           readOnly: true
+          nullable: true
         destination_event_user:
           type: boolean
           description: When enabled, notification will be sent to user the user that
@@ -43856,7 +43877,7 @@ components:
           type: string
           format: uuid
           nullable: true
-          description: When set, the selected ceritifcate is used to validate the
+          description: When set, the selected certificate is used to validate the
             certificate of the webhook server.
         webhook_mapping_body:
           type: string
@@ -43898,7 +43919,7 @@ components:
           type: string
           format: uuid
           nullable: true
-          description: When set, the selected ceritifcate is used to validate the
+          description: When set, the selected certificate is used to validate the
             certificate of the webhook server.
         webhook_mapping_body:
           type: string
@@ -48080,6 +48101,18 @@ components:
           items:
             type: string
             format: uuid
+        email_otp_throttling_factor:
+          type: number
+          format: double
+        sms_otp_throttling_factor:
+          type: number
+          format: double
+        totp_otp_throttling_factor:
+          type: number
+          format: double
+        static_otp_throttling_factor:
+          type: number
+          format: double
     PatchedAuthenticatorWebAuthnStageRequest:
       type: object
       description: AuthenticatorWebAuthnStage Serializer
@@ -48231,6 +48264,8 @@ components:
         api_url:
           type: string
           minLength: 1
+        request_content_type:
+          $ref: '#/components/schemas/RequestContentTypeEnum'
         interactive:
           type: boolean
         score_min_threshold:
@@ -48906,9 +48941,6 @@ components:
       type: object
       description: Group Source Connection
       properties:
-        group:
-          type: string
-          format: uuid
         source:
           type: string
           format: uuid
@@ -48919,9 +48951,6 @@ components:
       type: object
       description: Group Source Connection
       properties:
-        group:
-          type: string
-          format: uuid
         source:
           type: string
           format: uuid
@@ -48932,9 +48961,6 @@ components:
       type: object
       description: Group Source Connection
       properties:
-        group:
-          type: string
-          format: uuid
         source:
           type: string
           format: uuid
@@ -48945,9 +48971,6 @@ components:
       type: object
       description: Group Source Connection
       properties:
-        group:
-          type: string
-          format: uuid
         source:
           type: string
           format: uuid
@@ -48985,9 +49008,6 @@ components:
       type: object
       description: Group Source Connection
       properties:
-        group:
-          type: string
-          format: uuid
         source:
           type: string
           format: uuid
@@ -48998,9 +49018,6 @@ components:
       type: object
       description: Group Source Connection
       properties:
-        group:
-          type: string
-          format: uuid
         source:
           type: string
           format: uuid
@@ -49011,9 +49028,6 @@ components:
       type: object
       description: Group Source Connection
       properties:
-        group:
-          type: string
-          format: uuid
         source:
           type: string
           format: uuid
@@ -49713,7 +49727,7 @@ components:
           type: string
           format: uuid
           nullable: true
-          description: When set, the selected ceritifcate is used to validate the
+          description: When set, the selected certificate is used to validate the
             certificate of the webhook server.
         webhook_mapping_body:
           type: string
@@ -51187,6 +51201,7 @@ components:
             flows_refresh_others:
               type: boolean
               description: Refresh other tabs after successful authentication.
+              deprecated: true
           required:
           - core_default_app_access
           - enterprise_audit_include_expanded_diff
@@ -51386,8 +51401,6 @@ components:
       type: object
       description: User source connection
       properties:
-        user:
-          type: integer
         source:
           type: string
           format: uuid
@@ -51398,8 +51411,6 @@ components:
       type: object
       description: User source connection
       properties:
-        user:
-          type: integer
         source:
           type: string
           format: uuid
@@ -51453,8 +51464,6 @@ components:
       type: object
       description: User source connection
       properties:
-        user:
-          type: integer
         source:
           type: string
           format: uuid
@@ -51472,8 +51481,6 @@ components:
       type: object
       description: User source connection
       properties:
-        user:
-          type: integer
         source:
           type: string
           format: uuid
@@ -51531,8 +51538,6 @@ components:
       type: object
       description: User source connection
       properties:
-        user:
-          type: integer
         source:
           type: string
           format: uuid
@@ -51543,8 +51548,6 @@ components:
       type: object
       description: User source connection
       properties:
-        user:
-          type: integer
         source:
           type: string
           format: uuid
@@ -51555,8 +51558,6 @@ components:
       type: object
       description: User source connection
       properties:
-        user:
-          type: integer
         source:
           type: string
           format: uuid
@@ -52669,10 +52670,9 @@ components:
     ProviderTypeEnum:
       enum:
       - apple
+      - discord
       - openidconnect
       - entraid
-      - azuread
-      - discord
       - facebook
       - github
       - gitlab
@@ -53627,7 +53627,7 @@ components:
           type: string
         redirect_uri_type:
           allOf:
-          - $ref: '#/components/schemas/RedirectUriTypeEnum'
+          - $ref: '#/components/schemas/RedirectURITypeEnum'
           default: authorization
       required:
       - matching_mode
@@ -53643,12 +53643,12 @@ components:
           minLength: 1
         redirect_uri_type:
           allOf:
-          - $ref: '#/components/schemas/RedirectUriTypeEnum'
+          - $ref: '#/components/schemas/RedirectURITypeEnum'
           default: authorization
       required:
       - matching_mode
       - url
-    RedirectUriTypeEnum:
+    RedirectURITypeEnum:
       enum:
       - authorization
       - logout
@@ -53811,6 +53811,11 @@ components:
           minimum: -2147483648
       required:
       - name
+    RequestContentTypeEnum:
+      enum:
+      - application/x-www-form-urlencoded
+      - application/json
+      type: string
     Review:
       type: object
       description: |-
@@ -54279,6 +54284,14 @@ components:
           type: string
           description: Get Issuer/EntityID URL
           readOnly: true
+        url_unified:
+          type: string
+          description: Get unified SAML endpoint URL (handles SSO and SLO)
+          readOnly: true
+        url_unified_init:
+          type: string
+          description: Get IdP-initiated SAML URL
+          readOnly: true
         url_sso_post:
           type: string
           description: Get SSO Post URL
@@ -54318,6 +54331,8 @@ components:
       - url_sso_init
       - url_sso_post
       - url_sso_redirect
+      - url_unified
+      - url_unified_init
       - verbose_name
       - verbose_name_plural
     SAMLProviderImportRequest:
@@ -54849,6 +54864,7 @@ components:
       enum:
       - token
       - oauth
+      - oauth_interactive
       type: string
     SCIMMapping:
       type: object
@@ -54983,6 +54999,24 @@ components:
           type: object
           additionalProperties: {}
           description: Additional OAuth parameters, such as grant_type
+        auth_oauth_token_last_updated:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+        auth_oauth_token_expires:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+        auth_oauth_url_callback:
+          type: string
+          nullable: true
+          readOnly: true
+        auth_oauth_url_start:
+          type: string
+          nullable: true
+          readOnly: true
         compatibility_mode:
           allOf:
           - $ref: '#/components/schemas/CompatibilityModeEnum'
@@ -55015,6 +55049,10 @@ components:
       required:
       - assigned_backchannel_application_name
       - assigned_backchannel_application_slug
+      - auth_oauth_token_expires
+      - auth_oauth_token_last_updated
+      - auth_oauth_url_callback
+      - auth_oauth_url_start
       - component
       - meta_model_name
       - name
@@ -55618,6 +55656,7 @@ components:
       - enabled
       - paused
       - disabled
+      - disabled_deleted
       type: string
     Schedule:
       type: object
@@ -55872,6 +55911,8 @@ components:
           type: string
         invalidation_flow_url:
           type: string
+        overview_url:
+          type: string
         brand_name:
           type: string
       required:
@@ -55968,6 +56009,7 @@ components:
             flows_refresh_others:
               type: boolean
               description: Refresh other tabs after successful authentication.
+              deprecated: true
           required:
           - core_default_app_access
           - enterprise_audit_include_expanded_diff
@@ -56056,6 +56098,7 @@ components:
             flows_refresh_others:
               type: boolean
               description: Refresh other tabs after successful authentication.
+              deprecated: true
           required:
           - core_default_app_access
           - enterprise_audit_include_expanded_diff
@@ -57191,7 +57234,7 @@ components:
           readOnly: true
           title: ID
         provider:
-          $ref: '#/components/schemas/OAuth2Provider'
+          $ref: '#/components/schemas/Provider'
         user:
           $ref: '#/components/schemas/User'
         is_expired:
@@ -57701,6 +57744,7 @@ components:
           title: ID
         user:
           type: integer
+          readOnly: true
         source:
           type: string
           format: uuid
@@ -57730,8 +57774,6 @@ components:
       type: object
       description: User source connection
       properties:
-        user:
-          type: integer
         source:
           type: string
           format: uuid
@@ -57741,7 +57783,6 @@ components:
       required:
       - identifier
       - source
-      - user
     UserLDAPSourceConnection:
       type: object
       description: User source connection
@@ -57752,6 +57793,7 @@ components:
           title: ID
         user:
           type: integer
+          readOnly: true
         source:
           type: string
           format: uuid
@@ -57786,8 +57828,6 @@ components:
       type: object
       description: User source connection
       properties:
-        user:
-          type: integer
         source:
           type: string
           format: uuid
@@ -57797,7 +57837,6 @@ components:
       required:
       - identifier
       - source
-      - user
     UserLoginChallenge:
       type: object
       description: Empty challenge
@@ -58003,6 +58042,7 @@ components:
           title: ID
         user:
           type: integer
+          readOnly: true
         source:
           type: string
           format: uuid
@@ -58035,8 +58075,6 @@ components:
       type: object
       description: User source connection
       properties:
-        user:
-          type: integer
         source:
           type: string
           format: uuid
@@ -58053,7 +58091,6 @@ components:
       required:
       - identifier
       - source
-      - user
     UserPasswordHashSetRequest:
       type: object
       description: Payload to set a users' password hash directly
@@ -58092,6 +58129,7 @@ components:
           title: ID
         user:
           type: integer
+          readOnly: true
         source:
           type: string
           format: uuid
@@ -58121,8 +58159,6 @@ components:
       type: object
       description: User source connection
       properties:
-        user:
-          type: integer
         source:
           type: string
           format: uuid
@@ -58137,7 +58173,6 @@ components:
       - identifier
       - plex_token
       - source
-      - user
     UserRecoveryEmailRequest:
       type: object
       description: Payload to create and email a recovery link
@@ -58213,6 +58248,7 @@ components:
           title: ID
         user:
           type: integer
+          readOnly: true
         source:
           type: string
           format: uuid
@@ -58242,8 +58278,6 @@ components:
       type: object
       description: User source connection
       properties:
-        user:
-          type: integer
         source:
           type: string
           format: uuid
@@ -58253,7 +58287,6 @@ components:
       required:
       - identifier
       - source
-      - user
     UserSelf:
       type: object
       description: User Serializer for information a user can retrieve about themselves
@@ -58416,6 +58449,7 @@ components:
           title: ID
         user:
           type: integer
+          readOnly: true
         source:
           type: string
           format: uuid
@@ -58445,8 +58479,6 @@ components:
       type: object
       description: User source connection
       properties:
-        user:
-          type: integer
         source:
           type: string
           format: uuid
@@ -58456,7 +58488,6 @@ components:
       required:
       - identifier
       - source
-      - user
     UserTelegramSourceConnection:
       type: object
       description: User source connection
@@ -58467,6 +58498,7 @@ components:
           title: ID
         user:
           type: integer
+          readOnly: true
         source:
           type: string
           format: uuid
@@ -58496,8 +58528,6 @@ components:
       type: object
       description: User source connection
       properties:
-        user:
-          type: integer
         source:
           type: string
           format: uuid
@@ -58507,7 +58537,6 @@ components:
       required:
       - identifier
       - source
-      - user
     UserTypeEnum:
       enum:
       - internal

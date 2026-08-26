@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-23 00:25+0000\n"
+"POT-Creation-Date: 2026-06-11 00:42+0000\n"
 "PO-Revision-Date: 2025-12-01 19:09+0000\n"
 "Last-Translator: Raphael Cancelliere, 2026\n"
 "Language-Team: Norwegian (Norway) (https://app.transifex.com/authentik/teams/119923/no_NO/)\n"
@@ -110,6 +110,14 @@ msgid "Blueprint file does not exist"
 msgstr "Blueprint-filen eksisterer ikke"
 
 #: authentik/blueprints/api.py
+msgid "Context must be valid JSON"
+msgstr "Konteksten må være gyldig JSON"
+
+#: authentik/blueprints/api.py
+msgid "Context must be a JSON object"
+msgstr "Konteksten må være et JSON-objekt"
+
+#: authentik/blueprints/api.py
 msgid "Failed to validate blueprint"
 msgstr "Klarte ikke å validere blueprint"
 
@@ -181,7 +189,7 @@ msgid ""
 "When set, external users will be redirected to this application after "
 "authenticating."
 msgstr ""
-"Når den er angitt, vil eksterne brukere bli omdirigert til denne "
+"Når dette er angitt, blir eksterne brukere omdirigert til denne "
 "applikasjonen etter autentisering."
 
 #: authentik/brands/models.py
@@ -237,6 +245,11 @@ msgstr "Brukeren har ikke tilgang til applikasjonen."
 msgid "The slug '{slug}' is reserved and cannot be used for applications."
 msgstr "Slug-en '{slug}' er reservert og kan ikke brukes for applikasjoner."
 
+#: authentik/core/api/groups.py
+msgid "User does not have permission to add members to this group."
+msgstr ""
+"Brukeren har ikke tillatelse til å legge til medlemmer i denne gruppen."
+
 #: authentik/core/api/providers.py
 msgid ""
 "When not set all providers are returned. When set to true, only backchannel "
@@ -246,6 +259,15 @@ msgstr ""
 "Når ikke angitt, returneres alle leverandører. Når satt til true, returneres"
 " kun backchannel-leverandører. Når satt til false, ekskluderes backchannel-"
 "leverandører."
+
+#: authentik/core/api/users.py
+msgid "Invalid password hash format. Must be a valid Django password hash."
+msgstr ""
+"Ugyldig format for passord-hash. Må være en gyldig Django-passord-hash."
+
+#: authentik/core/api/users.py
+msgid "Cannot set both password and password_hash. Use only one."
+msgstr "Kan ikke angi både password og password_hash. Bruk bare én."
 
 #: authentik/core/api/users.py
 msgid "No leading or trailing slashes allowed."
@@ -262,6 +284,16 @@ msgstr "Kan ikke endre intern tjenestekonto til annen brukertype."
 #: authentik/core/api/users.py
 msgid "Setting a user to internal service account is not allowed."
 msgstr "Det er ikke tillatt å sette en bruker til intern tjenestekonto."
+
+#: authentik/core/api/users.py
+msgid "User does not have permission to add members to a superuser group."
+msgstr ""
+"Brukeren har ikke tillatelse til å legge til medlemmer i en "
+"superbrukergruppe."
+
+#: authentik/core/api/users.py
+msgid "User does not have permission to assign roles."
+msgstr "Brukeren har ikke tillatelse til å tildele roller."
 
 #: authentik/core/api/users.py
 msgid "Can't modify internal service account users"
@@ -420,6 +452,10 @@ msgstr "Internt applikasjonsnavn, brukt i URL-er."
 #: authentik/core/models.py
 msgid "Open launch URL in a new browser tab or window."
 msgstr "Åpne start-URL i en ny nettleserfane eller -vindu."
+
+#: authentik/core/models.py
+msgid "Hide this application from the user's My applications page."
+msgstr "Skjul denne applikasjonen fra brukerens side Mine applikasjoner."
 
 #: authentik/core/models.py
 msgid "Application"
@@ -917,10 +953,6 @@ msgstr "Enten en vurderingsgruppe eller en vurderer må være angitt."
 msgid "Grace period must be shorter than the interval."
 msgstr "Respittiden må være kortere enn intervallet."
 
-#: authentik/enterprise/lifecycle/api/rules.py
-msgid "Only one type-wide rule for each object type is allowed."
-msgstr "Kun én type-omfattende regel for hver objekttype er tillatt."
-
 #: authentik/enterprise/lifecycle/models.py
 msgid ""
 "Select which transports should be used to notify the reviewers. If none are "
@@ -950,9 +982,11 @@ msgid "Go to {self._get_model_name()}"
 msgstr "Gå til {self._get_model_name()}"
 
 #: authentik/enterprise/lifecycle/models.py
-msgid "Access review is due for {self.content_type.name} {str(self.object)}"
+msgid ""
+"Access review is due for {self.content_type.name.lower()} {object_label}"
 msgstr ""
-"Tilgangsvurdering forfaller for {self.content_type.name} {str(self.object)}"
+"Tilgangsgjennomgang for {self.content_type.name.lower()} {object_label} "
+"forfaller"
 
 #: authentik/enterprise/lifecycle/models.py
 msgid ""
@@ -968,8 +1002,8 @@ msgstr ""
 "Tilgangsvurdering fullført for {self.content_type.name} {str(self.object)}"
 
 #: authentik/enterprise/lifecycle/tasks.py
-msgid "Dispatch tasks to validate lifecycle rules."
-msgstr "Send ut oppgaver for å validere livssyklusregler."
+msgid "Dispatch tasks to apply lifecycle rules."
+msgstr "Send oppgaver for å bruke livssyklusregler."
 
 #: authentik/enterprise/lifecycle/tasks.py
 msgid "Apply lifecycle rule."
@@ -1305,6 +1339,83 @@ msgstr "Last ned"
 msgid "Generate data export."
 msgstr "Generer eksport av data."
 
+#: authentik/enterprise/stages/account_lockdown/api.py
+msgid "User to lock. If omitted, locks the current user (self-service)."
+msgstr ""
+"Bruker som skal låses. Hvis utelatt, låses gjeldende bruker (selvbetjening)."
+
+#: authentik/enterprise/stages/account_lockdown/api.py
+msgid "No lockdown flow configured."
+msgstr "Ingen låseflyt er konfigurert."
+
+#: authentik/enterprise/stages/account_lockdown/api.py
+msgid "Lockdown flow is not applicable."
+msgstr "Låseflyten er ikke relevant."
+
+#: authentik/enterprise/stages/account_lockdown/api.py
+msgid "Choose the target account, then return a flow link."
+msgstr "Velg målkontoen, og returner deretter en flytlenke."
+
+#: authentik/enterprise/stages/account_lockdown/api.py
+msgid "No lockdown flow configured or the flow is not applicable"
+msgstr "Ingen låseflyt er konfigurert, eller flyten er ikke relevant"
+
+#: authentik/enterprise/stages/account_lockdown/api.py
+msgid "Permission denied (when targeting another user)"
+msgstr "Tilgang nektet (ved målretting mot en annen bruker)"
+
+#: authentik/enterprise/stages/account_lockdown/models.py
+msgid "Deactivate the user account (set is_active to False)"
+msgstr "Deaktiver brukerkontoen (sett is_active til False)"
+
+#: authentik/enterprise/stages/account_lockdown/models.py
+msgid "Set an unusable password for the user"
+msgstr "Angi et ubrukelig passord for brukeren"
+
+#: authentik/enterprise/stages/account_lockdown/models.py
+msgid "Delete all active sessions for the user"
+msgstr "Slett alle aktive økter for brukeren"
+
+#: authentik/enterprise/stages/account_lockdown/models.py
+msgid ""
+"Revoke all tokens for the user (API, app password, recovery, verification, "
+"OAuth)"
+msgstr ""
+"Tilbakekall alle tokener for brukeren (API, app-passord, gjenoppretting, "
+"verifisering, OAuth)"
+
+#: authentik/enterprise/stages/account_lockdown/models.py
+msgid ""
+"Flow to redirect users to after self-service lockdown. This flow should not "
+"require authentication since the user's session is deleted."
+msgstr ""
+"Flyt brukere videresendes til etter kontolåsing via selvbetjening. Denne "
+"flyten bør ikke kreve autentisering siden brukerens økt er slettet."
+
+#: authentik/enterprise/stages/account_lockdown/models.py
+msgid "Account Lockdown Stage"
+msgstr "Trinn for kontolåsing"
+
+#: authentik/enterprise/stages/account_lockdown/models.py
+msgid "Account Lockdown Stages"
+msgstr "Trinn for kontolåsing"
+
+#: authentik/enterprise/stages/account_lockdown/stage.py
+msgid "No target user specified for account lockdown"
+msgstr "Ingen målbruker er angitt for kontolåsing"
+
+#: authentik/enterprise/stages/account_lockdown/stage.py
+msgid "You do not have permission to lock down this account."
+msgstr "Du har ikke tillatelse til å låse denne kontoen."
+
+#: authentik/enterprise/stages/account_lockdown/stage.py
+msgid "Account lockdown failed for this account."
+msgstr "Kontolåsing mislyktes for denne kontoen."
+
+#: authentik/enterprise/stages/account_lockdown/stage.py
+msgid "Self-service account lockdown requires a completion flow."
+msgstr "Kontolåsing via selvbetjening krever en fullføringsflyt."
+
 #: authentik/enterprise/stages/authenticator_endpoint_gdtc/models.py
 msgid "Endpoint Authenticator Google Device Trust Connector Stage"
 msgstr "Trinn for endepunktautentisering via Google Device Trust-kobling"
@@ -1406,10 +1517,10 @@ msgstr ""
 
 #: authentik/events/models.py
 msgid ""
-"When set, the selected ceritifcate is used to validate the certificate of "
+"When set, the selected certificate is used to validate the certificate of "
 "the webhook server."
 msgstr ""
-"Når det er angitt, brukes det valgte sertifikatet til å validere "
+"Hvis dette er konfigurert, brukes det valgte sertifikatet til å validere "
 "sertifikatet til webhook-serveren."
 
 #: authentik/events/models.py
@@ -2705,8 +2816,12 @@ msgstr ""
 " vil ingen målgrupperestriksjon bli lagt til."
 
 #: authentik/providers/saml/models.py
-msgid "Also known as EntityID"
-msgstr "Også kjent som EntityID"
+msgid ""
+"Also known as EntityID. Providing a value overrides the default issuer "
+"generated by authentik."
+msgstr ""
+"Også kjent som EntityID. Hvis du angir en verdi, overstyres "
+"standardutstederen generert av authentik."
 
 #: authentik/providers/saml/models.py
 msgid "SLS URL"
@@ -2925,6 +3040,10 @@ msgid "SAML NameID format"
 msgstr "SAML NameID-format"
 
 #: authentik/providers/saml/models.py
+msgid "SAML Issuer used for this session"
+msgstr "SAML-utsteder brukt for denne økten"
+
+#: authentik/providers/saml/models.py
 msgid "SAML Session"
 msgstr "SAML-økt"
 
@@ -2933,8 +3052,12 @@ msgid "SAML Sessions"
 msgstr "SAML-økter"
 
 #: authentik/providers/scim/models.py
-msgid "OAuth"
-msgstr "OAuth"
+msgid "OAuth (Silent)"
+msgstr "OAuth (stille)"
+
+#: authentik/providers/scim/models.py
+msgid "OAuth (interactive)"
+msgstr "OAuth (interaktiv)"
 
 #: authentik/providers/scim/models.py
 msgid "Default"
@@ -2955,6 +3078,10 @@ msgstr "Salesforce"
 #: authentik/providers/scim/models.py
 msgid "Webex"
 msgstr "Webex"
+
+#: authentik/providers/scim/models.py
+msgid "vCenter"
+msgstr "vCenter"
 
 #: authentik/providers/scim/models.py
 msgid "Group filters used to define sync-scope for groups."
@@ -3564,14 +3691,6 @@ msgstr "Google OAuth-kilde"
 #: authentik/sources/oauth/models.py
 msgid "Google OAuth Sources"
 msgstr "Google OAuth-kilder"
-
-#: authentik/sources/oauth/models.py
-msgid "Azure AD OAuth Source"
-msgstr "Azure AD OAuth-kilde"
-
-#: authentik/sources/oauth/models.py
-msgid "Azure AD OAuth Sources"
-msgstr "Azure AD OAuth-kilder"
 
 #: authentik/sources/oauth/models.py
 msgid "Entra ID OAuth Source"
@@ -4829,6 +4948,18 @@ msgstr "Skjult: Skjult felt, kan brukes til å sette inn data i skjemaet."
 #: authentik/stages/prompt/models.py
 msgid "Static: Static value, displayed as-is."
 msgstr "Statisk: Statisk verdi, vises som den er."
+
+#: authentik/stages/prompt/models.py
+msgid "Alert (Info): Static alert box with info styling"
+msgstr "Varsel (Info): Statisk varselboks med infostil"
+
+#: authentik/stages/prompt/models.py
+msgid "Alert (Warning): Static alert box with warning styling"
+msgstr "Varsel (Advarsel): Statisk varselboks med advarselsstil"
+
+#: authentik/stages/prompt/models.py
+msgid "Alert (Danger): Static alert box with danger styling"
+msgstr "Varsel (Fare): Statisk varselboks med farestil"
 
 #: authentik/stages/prompt/models.py
 msgid "authentik: Selection of locales authentik supports"

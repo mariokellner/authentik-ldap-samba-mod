@@ -1,4 +1,4 @@
-import { DEFAULT_CONFIG } from "#common/api/config";
+import { aki } from "#common/api/client";
 import { EVENT_REFRESH } from "#common/constants";
 import { parseAPIResponseError } from "#common/errors/network";
 
@@ -109,9 +109,9 @@ export class ApplicationWizardSubmitStep extends CustomEmitterElement(Applicatio
 
     async sendSAMLMetadataImport() {
         const providerData = this.wizard.provider as ProvidersSamlImportMetadataCreateRequest;
-        const providersApi = new ProvidersApi(DEFAULT_CONFIG);
-        const coreApi = new CoreApi(DEFAULT_CONFIG);
-        const policiesApi = new PoliciesApi(DEFAULT_CONFIG);
+        const providersApi = aki(ProvidersApi);
+        const coreApi = aki(CoreApi);
+        const policiesApi = aki(PoliciesApi);
 
         try {
             // Step 1: Import SAML metadata to create the provider
@@ -204,7 +204,7 @@ export class ApplicationWizardSubmitStep extends CustomEmitterElement(Applicatio
             policyBindings: (this.wizard.bindings ?? []).map(cleanBinding),
         };
 
-        return new CoreApi(DEFAULT_CONFIG)
+        return aki(CoreApi)
             .coreTransactionalApplicationsUpdate({
                 transactionApplicationRequest: request,
             })
@@ -381,7 +381,7 @@ export class ApplicationWizardSubmitStep extends CustomEmitterElement(Applicatio
         return html`<h2 class="pf-c-wizard__main-title">
                     ${msg("Review the Application and Provider")}
                 </h2>
-                <fieldset>
+                <fieldset class="ak-c-fieldset" name="application-details">
                     <legend>${msg("Application Details")}</legend>
                     <dl class="pf-c-description-list">
                         <div class="pf-c-description-list__group">
@@ -419,7 +419,7 @@ export class ApplicationWizardSubmitStep extends CustomEmitterElement(Applicatio
 
                 ${
                     renderer
-                        ? html`<fieldset>
+                        ? html`<fieldset class="ak-c-fieldset" name="provider-details">
                               <legend>${msg("Provider Details")}</legend>
                               ${renderer(provider)}
                           </fieldset>`

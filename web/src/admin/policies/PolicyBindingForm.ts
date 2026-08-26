@@ -4,7 +4,7 @@ import "#elements/forms/HorizontalFormElement";
 import "#elements/forms/Radio";
 import "#elements/forms/SearchSelect/index";
 
-import { DEFAULT_CONFIG } from "#common/api/config";
+import { aki } from "#common/api/client";
 import {
     createPassFailOptions,
     PolicyBindingCheckTarget,
@@ -44,7 +44,7 @@ export class PolicyBindingForm<T extends PolicyBinding = PolicyBinding> extends 
     public static verboseNamePlural = msg("Policy Bindings");
 
     async loadInstance(pk: string): Promise<T> {
-        const binding = await new PoliciesApi(DEFAULT_CONFIG).policiesBindingsRetrieve({
+        const binding = await aki(PoliciesApi).policiesBindingsRetrieve({
             policyBindingUuid: pk,
         });
         if (binding?.policyObj) {
@@ -119,12 +119,12 @@ export class PolicyBindingForm<T extends PolicyBinding = PolicyBinding> extends 
         }
 
         if (this.instance?.pk) {
-            return new PoliciesApi(DEFAULT_CONFIG).policiesBindingsUpdate({
+            return aki(PoliciesApi).policiesBindingsUpdate({
                 policyBindingUuid: this.instance.pk,
                 policyBindingRequest: data,
             });
         }
-        return new PoliciesApi(DEFAULT_CONFIG).policiesBindingsCreate({
+        return aki(PoliciesApi).policiesBindingsCreate({
             policyBindingRequest: data,
         });
     }
@@ -133,7 +133,7 @@ export class PolicyBindingForm<T extends PolicyBinding = PolicyBinding> extends 
         if (this.instance?.pk) {
             return this.instance.order;
         }
-        const bindings = await new PoliciesApi(DEFAULT_CONFIG).policiesBindingsList({
+        const bindings = await aki(PoliciesApi).policiesBindingsList({
             target: this.targetPk || "",
         });
         const orders = bindings.results.map((binding) => binding.order);
@@ -178,9 +178,7 @@ export class PolicyBindingForm<T extends PolicyBinding = PolicyBinding> extends 
                         if (query !== undefined) {
                             args.search = query;
                         }
-                        const policies = await new PoliciesApi(DEFAULT_CONFIG).policiesAllList(
-                            args,
-                        );
+                        const policies = await aki(PoliciesApi).policiesAllList(args);
                         return policies.results;
                     }}
                     .renderElement=${(policy: Policy) => policy.name}
@@ -209,7 +207,7 @@ export class PolicyBindingForm<T extends PolicyBinding = PolicyBinding> extends 
                         if (query !== undefined) {
                             args.search = query;
                         }
-                        const groups = await new CoreApi(DEFAULT_CONFIG).coreGroupsList(args);
+                        const groups = await aki(CoreApi).coreGroupsList(args);
                         return groups.results;
                     }}
                     .renderElement=${(group: Group): string => {
@@ -239,7 +237,7 @@ export class PolicyBindingForm<T extends PolicyBinding = PolicyBinding> extends 
                         if (query !== undefined) {
                             args.search = query;
                         }
-                        const users = await new CoreApi(DEFAULT_CONFIG).coreUsersList(args);
+                        const users = await aki(CoreApi).coreUsersList(args);
                         return users.results;
                     }}
                     .renderElement=${(user: User) => user.username}
@@ -272,7 +270,7 @@ export class PolicyBindingForm<T extends PolicyBinding = PolicyBinding> extends 
             </ak-switch-input>
             <ak-switch-input
                 name="negate"
-                label=${msg("Negate result")}
+                label=${msg("Negate Result")}
                 ?checked=${this.instance?.negate ?? false}
                 help=${msg("Negates the outcome of the binding. Messages are unaffected.")}
             >
@@ -293,7 +291,11 @@ export class PolicyBindingForm<T extends PolicyBinding = PolicyBinding> extends 
                     required
                 />
             </ak-form-element-horizontal>
-            <ak-form-element-horizontal name="failureResult" label=${msg("Failure result")}>
+            <ak-form-element-horizontal
+                name="failureResult"
+                label=${msg("Failure Result")}
+                required
+            >
                 <ak-radio .options=${createPassFailOptions} .value=${this.instance?.failureResult}>
                 </ak-radio>
                 <p class="pf-c-form__helper-text">
